@@ -1,0 +1,103 @@
+@startuml Populare_si_afisare_meniu
+title Diagrama de secventa - Popularea si afisarea meniului la pornirea aplicatiei (Punctul a)
+
+actor Manager as M
+participant ":Aplicatie" as App
+participant "meniu:Meniu" as Meniu
+participant "repo:MeniuRepository" as Repo
+database "SQLite\n(restaurant.db)" as DB
+
+== Pornirea aplicatiei ==
+
+M -> App : porneste aplicatia
+activate App
+
+App -> Repo : new MeniuRepository("restaurant.db")
+activate Repo
+Repo --> App : repo
+deactivate Repo
+
+App -> Repo : initializeazaSchema()
+activate Repo
+Repo -> DB : CREATE TABLE IF NOT EXISTS produs_meniu
+activate DB
+DB --> Repo : OK
+deactivate DB
+Repo --> App :
+deactivate Repo
+
+App -> Repo : numaraProduse()
+activate Repo
+Repo -> DB : SELECT COUNT(*) FROM produs_meniu
+activate DB
+DB --> Repo : 0
+deactivate DB
+Repo --> App : 0
+deactivate Repo
+
+== Baza de date e goala -> populam produsele obligatorii ==
+
+alt nu exista produse in baza de date
+    App -> Meniu : new Meniu()
+    activate Meniu
+    Meniu --> App : meniu
+    deactivate Meniu
+
+    App -> Meniu : incarcaProduseObligatorii()
+    activate Meniu
+
+    note right of Meniu
+        Instantiaza si adauga produsele
+        OBLIGATORII din enunt:
+        - Aperitive: bruschete cu rosii,
+          pesto, bruschete cu somon
+        - Bauturi nespirtoase: apa plata,
+          apa minerala, limonada
+        + feluri principale (supa, carne,
+          vegetarian, garnitura)
+    end note
+
+    loop pentru fiecare produs obligatoriu
+        Meniu -> Meniu : adaugaProdus(produs)
+    end
+    Meniu --> App :
+    deactivate Meniu
+
+    App -> Repo : salveazaMeniu(meniu)
+    activate Repo
+    loop pentru fiecare ProdusMeniu din meniu
+        Repo -> DB : INSERT INTO produs_meniu (...)
+        activate DB
+        DB --> Repo : id generat
+        deactivate DB
+    end
+    Repo --> App :
+    deactivate Repo
+
+else exista deja produse
+    App -> Repo : incarcaMeniu()
+    activate Repo
+    Repo -> DB : SELECT * FROM produs_meniu
+    activate DB
+    DB --> Repo : randuri produse
+    deactivate DB
+    loop pentru fiecare rand
+        Repo -> Repo : construiesteProdus(rs, categorie)
+    end
+    Repo --> App : meniu
+    deactivate Repo
+end
+
+== Afisarea meniului pe categorii ==
+
+loop pentru fiecare CategorieMeniu (cele 4 categorii)
+    App -> Meniu : getProdusePeCategorie(categorie)
+    activate Meniu
+    Meniu --> App : List<ProdusMeniu>
+    deactivate Meniu
+end
+
+App --> M : meniul este afisat pe cele 4 categorii
+deactivate App
+
+@enduml
