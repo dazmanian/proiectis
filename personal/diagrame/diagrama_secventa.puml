@@ -1,0 +1,33 @@
+@startuml
+title Flux Personal Restaurant - Preluare Comanda
+
+actor Angajat
+participant "ConsolaPersonal" as UI
+participant "PersonalService" as Service
+participant "PersonalRepository" as PersonalRepo
+participant "ComandaRepository" as ComandaRepo
+
+Angajat -> UI : introduce username si parola
+UI -> Service : autentifica(username, parola)
+Service -> PersonalRepo : gasesteDupaUsername(username)
+PersonalRepo --> Service : Personal
+Service --> UI : true
+UI --> Angajat : "Bun venit!"
+
+Angajat -> UI : solicita comenzile nefinalizate
+UI -> Service : getComenziNefinalizate()
+Service -> ComandaRepo : getComenziNefinalizate()
+ComandaRepo --> Service : List<Comanda>
+Service --> UI : List<Comanda>
+UI --> Angajat : afiseaza lista comenzi
+
+Angajat -> UI : preia comanda #id, timp estimat
+UI -> Service : preiaComanda(idComanda, timpEstimat)
+Service -> ComandaRepo : gasesteDupaId(idComanda)
+ComandaRepo --> Service : Comanda
+Service -> ComandaRepo : actualizeaza(comanda)
+ComandaRepo --> Service : ok
+Service --> UI : ok
+UI --> Angajat : "Comanda preluata!"
+
+@enduml
