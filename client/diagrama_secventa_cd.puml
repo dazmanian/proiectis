@@ -1,0 +1,66 @@
+@startuml
+title Diagrama de secventa - Modul Client (Punctele c si d)
+
+actor Client as C
+participant "UI_Meniu" as UI
+participant "PopUpLegislativ" as PopUp
+participant "CosCumparaturi" as Cos
+participant "ArticolCos" as Articol
+participant "ProdusMeniu" as Produs
+participant "ComandaService" as Comanda
+
+== Subpunctul d) Pop-up Legislativ ==
+C -> UI : apasaButonInfo(produs)
+activate UI
+UI -> PopUp : afiseazaPopUp(produs)
+activate PopUp
+
+PopUp -> Produs : getIngrediente()
+Produs --> PopUp : ingrediente
+PopUp -> Produs : isVegetarian()
+Produs --> PopUp : boolean
+PopUp -> Produs : isPicant()
+Produs --> PopUp : boolean
+
+PopUp --> UI : afisare informatii
+deactivate PopUp
+UI --> C : vede pop-up
+deactivate UI
+
+== Subpunctul c) Adaugare in Cos ==
+C -> UI : adaugaInCos(produs, cantitate)
+activate UI
+UI -> Cos : adaugaInCos(produs, cantitate)
+activate Cos
+
+Cos -> Produs : isDisponibil()
+Produs --> Cos : true
+
+alt produsul exista deja in cos
+    Cos -> Cos : adaugaCantitate(cantitate)
+else e produs nou
+    Cos -> Articol ** : new ArticolCos(produs, cantitate)
+end
+
+Cos --> UI : succes
+deactivate Cos
+UI --> C : actualizare vizuala
+deactivate UI
+
+== Legatura cu Subpunctul e) Plasare Comanda ==
+C -> UI : plaseazaComanda()
+activate UI
+UI -> Cos : plaseazaComanda()
+activate Cos
+
+Cos -> Cos : calculeazaTotal()
+Cos -> Comanda : creeazaComanda(elemente)
+Comanda --> Cos : OK
+Cos -> Cos : golesteCos()
+
+Cos --> UI : comanda plasata
+deactivate Cos
+UI --> C : afiseaza chitanta
+deactivate UI
+
+@enduml
